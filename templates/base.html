@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СНБ - Тестовая страница</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/basic_style.css') }}">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="soviet-header">
+        <div class="logo">СНБ</div>
+        <a href="{{url_for('homepage')}}">Главная</a>
+        {% if current_user.is_authenticated %}
+            <a href="{{url_for('homepage')}}">{{current_user.username}}</a>
+            <a href="{{url_for('logout')}}">Выход</a>
+        {% else %}
+            <a href="{{url_for('login')}}">Вход</a>
+        {% endif %}
+        {% block header %}{% endblock %}
+    </header>
+
+    <!-- Основной контент -->
+    <main class="p-2">
+        {% block main_content %}{% endblock %}
+    </main>
+
+    {% block script %}{% endblock %}
+</body>
+</html>

@@ -1,18 +1,24 @@
 from typing import List
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, ForeignKey
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 import datetime
 
-db = SQLAlchemy()
+from api_settings import db, app, login
+
+@login.user_loader
+def load_user(id):
+  return db.session.get(User, int(id))
 
 class User_Feedback(db.Model):                                          # отзыв на человека (репутация)
     __tablename__ = "userfeedback"
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str] = mapped_column(nullable=False)
     rating: Mapped[int] = mapped_column(nullable=False)
-    user_id_sender: Mapped[int] = mapped_column(nullable=False)         # связано с User.id 
-    user_id_recipient: Mapped[int] = mapped_column(nullable=False)      # связано с User.id
+    user_id_sender: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)         # связано с User.id 
+    user_id_recipient: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)      # связано с User.id
 
     sender = relationship(
         "User",
@@ -22,7 +28,7 @@ class User_Feedback(db.Model):                                          # отз
     )
     recipient = relationship(
         "User",
-        foreign_keys=[user_id_sender],
+        foreign_keys=[user_id_recipient],
         backref="received_feedbacks",
         lazy="joined",
     )
@@ -31,9 +37,9 @@ class User_Feedback(db.Model):                                          # отз
 class Feedback_Rating(db.Model):                                        # оценка отзыва другими пользователями
     __tablename__ = "rating"
     id: Mapped[int] = mapped_column(primary_key=True)
-    feedback_id: Mapped[int] = mapped_column(nullable=False)            # связано с User_Feedback.id
+    feedback_id: Mapped[int] = mapped_column(ForeignKey("userfeedback.id"), nullable=False)            # связано с User_Feedback.id
     rating: Mapped[bool] = mapped_column(nullable=True)                 # 0 = палец вниз, 1 = палец вверх
-    user_id_rater: Mapped[int] = mapped_column(nullable=False)          # связано с User.id
+    user_id_rater: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)          # связано с User.id
 
     __table_args__ = (
         UniqueConstraint('user_id_rater', 'feedback_id', name='uq_user_feedback_rating'),
@@ -57,7 +63,7 @@ class Offer(db.Model):                                                  # пре
     id: Mapped[int] = mapped_column(primary_key=True)
     offer_name: Mapped[str] = mapped_column(nullable=False)
     offer_description: Mapped[str] = mapped_column(nullable=False)
-    user_id_offeror: Mapped[int] = mapped_column(nullable=False)                # связано с User.id
+    user_id_offeror: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)                # связано с User.id
     category: Mapped[str] = mapped_column(nullable=True)
     conditions: Mapped[str] = mapped_column(nullable=True)
     is_hidden: Mapped[bool] = mapped_column(nullable=False, default=False)
@@ -69,13 +75,19 @@ class Offer(db.Model):                                                  # пре
         lazy='joined',
     )
 
-class User(db.Model):                                                   # пользователь
+class User(UserMixin, db.Model):                                                   # пользователь
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(nullable=False)
-    phone_number: Mapped[str] = mapped_column()
-    email: Mapped[str] = mapped_column()
-    registration_date: Mapped[datetime.datetime] = mapped_column(nullable=False)
-    last_seen_online: Mapped[datetime.datetime] = mapped_column(nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)                      # не сам пароль, а хэш от него
+    phone_number: Mapped[str] = mapped_column(nullable=True)
+    email: Mapped[str] = mapped_column(nullable=True)
+    registration_date: Mapped[datetime.datetime] = mapped_column(nullable=False, default=datetime.datetime.now())
+    last_seen_online: Mapped[datetime.datetime] = mapped_column(nullable=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 

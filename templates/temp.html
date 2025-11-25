@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <button class="btn-primary">Предложить обмен</button>
+{% endblock %}
+
+
+{% block main_content %}
+        <!-- Поиск -->
+        <section class="mb-2">
+            <input type="text" class="form-control mb-1" placeholder="Что ищете, товарищ?">
+            <div class="d-flex gap-1" style="overflow-x: auto;">
+                <button class="btn-secondary active">Всё</button>
+                <button class="btn-secondary">Одежда</button>
+                <button class="btn-secondary">Книги</button>
+                <button class="btn-secondary">Электроника</button>
+            </div>
+        </section>
+
+        <!-- Карточки товаров -->
+        <section>
+            <div class="card mb-1">
+                <div class="card-body">
+                    <div class="card-title">Тестовый товар 1</div>
+                    <div class="card-text mb-1">Описание тестового товара для проверки стилей</div>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Иван П.</span>
+                        <span class="text-primary">~ 0.5 км</span>
+                    </div>
+                    <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
+                </div>
+            </div>
+
+            <div class="card mb-1">
+                <div class="card-body">
+                    <div class="card-title">Тестовый товар 2</div>
+                    <div class="card-text mb-1">Еще один товар для тестирования внешнего вида</div>
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Мария К.</span>
+                        <span class="text-primary">~ 1.2 км</span>
+                    </div>
+                    <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
+                </div>
+            </div>
+        </section>
+{% endblock %}
+
+{% block script %}
+    <script>
+        // Простой скрипт для переключения активных кнопок фильтров
+        document.querySelectorAll('.btn-secondary').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.btn-secondary').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+    </script>
+{% endblock %}
