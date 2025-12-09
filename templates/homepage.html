@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <button class="btn-primary">Предложить обмен</button>
+    <form action="{{url_for('offer_creation')[1:]}}">
+        <button class="btn-primary">Создать предложение</button>
+    </form>
 {% endblock %}
 
 
@@ -19,30 +21,49 @@
 
         <!-- Карточки товаров -->
         <section>
+            {% for offer in offers %}
             <div class="card mb-1">
                 <div class="card-body">
-                    <div class="card-title">Тестовый товар 1</div>
-                    <div class="card-text mb-1">Описание тестового товара для проверки стилей</div>
+                    <div class="card-title">{{ offer.offer_name }}</div>
+                    <div class="card-text mb-1">{{ offer.offer_description }}</div>
                     <div class="d-flex justify-content-between text-muted">
-                        <span>Иван П.</span>
-                        <span class="text-primary">~ 0.5 км</span>
+                        <span>{{ offer.user.username if offer.user else 'Неизвестный пользователь' }}</span>
+                        <span class="text-primary">~ 0.5 км</span> <!-- Пока оставляем заглушку для расстояния -->
                     </div>
+                    {% if offer.conditions %}
+                    <div class="mt-1 mb-1">
+                        <small><strong>Условия обмена:</strong> {{ offer.conditions }}</small>
+                    </div>
+                    {% endif %}
                     <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
                 </div>
             </div>
-
+            {% else %}
             <div class="card mb-1">
                 <div class="card-body">
-                    <div class="card-title">Тестовый товар 2</div>
-                    <div class="card-text mb-1">Еще один товар для тестирования внешнего вида</div>
+                    <div class="card-title">Предложения отсутствуют</div>
+                    <div class="card-text mb-1">Будьте первым, кто предложит обмен!</div>
                     <div class="d-flex justify-content-between text-muted">
-                        <span>Мария К.</span>
-                        <span class="text-primary">~ 1.2 км</span>
+                        <span>Администрация</span>
+                        <span class="text-primary">~ 0 км</span>
                     </div>
-                    <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
+                    <a href="{{url_for('offer_creation')}}">
+                        <button class="btn-primary mt-1" style="width: 100%;">Создать первое предложение</button>
+                    </a>
                 </div>
             </div>
+            {% endfor %}
         </section>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 {% endblock %}
 
 {% block script %}

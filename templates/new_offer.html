@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+    <h1>Новое предложение</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.offer_name.label }}<br>
+            {{ form.offer_name() }}<br>
+            {% for error in form.offer_name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.offer_description.label }}<br>
+            {{ form.offer_description() }}<br>
+            {% for error in form.offer_description.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.conditions.label }}<br>
+            {{ form.conditions() }}<br>
+            {% for error in form.conditions.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+{% endblock %}

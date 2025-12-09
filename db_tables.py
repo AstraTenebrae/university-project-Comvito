@@ -17,8 +17,8 @@ class User_Feedback(db.Model):                                          # отз
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str] = mapped_column(nullable=False)
     rating: Mapped[int] = mapped_column(nullable=False)
-    user_id_sender: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)         # связано с User.id 
-    user_id_recipient: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)      # связано с User.id
+    user_id_sender: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)         # связано с User.id 
+    user_id_recipient: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)      # связано с User.id
 
     sender = relationship(
         "User",
@@ -37,9 +37,9 @@ class User_Feedback(db.Model):                                          # отз
 class Feedback_Rating(db.Model):                                        # оценка отзыва другими пользователями
     __tablename__ = "rating"
     id: Mapped[int] = mapped_column(primary_key=True)
-    feedback_id: Mapped[int] = mapped_column(ForeignKey("userfeedback.id"), nullable=False)            # связано с User_Feedback.id
+    feedback_id: Mapped[int] = mapped_column(ForeignKey("userfeedback.id", ondelete="CASCADE"), nullable=False)            # связано с User_Feedback.id
     rating: Mapped[bool] = mapped_column(nullable=True)                 # 0 = палец вниз, 1 = палец вверх
-    user_id_rater: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)          # связано с User.id
+    user_id_rater: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)          # связано с User.id
 
     __table_args__ = (
         UniqueConstraint('user_id_rater', 'feedback_id', name='uq_user_feedback_rating'),
@@ -63,8 +63,8 @@ class Offer(db.Model):                                                  # пре
     id: Mapped[int] = mapped_column(primary_key=True)
     offer_name: Mapped[str] = mapped_column(nullable=False)
     offer_description: Mapped[str] = mapped_column(nullable=False)
-    user_id_offeror: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)                # связано с User.id
-    category: Mapped[str] = mapped_column(nullable=True)
+    user_id_offeror: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), nullable=False)                # связано с User.id
+#    category: Mapped[str] = mapped_column(nullable=True)
     conditions: Mapped[str] = mapped_column(nullable=True)
     is_hidden: Mapped[bool] = mapped_column(nullable=False, default=False)
     
@@ -73,6 +73,35 @@ class Offer(db.Model):                                                  # пре
         foreign_keys=[user_id_offeror],
         backref="offers",
         lazy='joined',
+    )
+
+    categories: Mapped[List["Category"]] = relationship(
+        "Category",
+        secondary="offer_category",  # ссылка на промежуточную таблицу
+        back_populates="offers",
+        lazy='joined',
+    )
+
+class Category(db.Model):
+    __tablename__ = "category"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    category_name: Mapped[str] = mapped_column(nullable=False)
+
+    offers: Mapped[List["Offer"]] = relationship(
+        "Offer",
+        secondary="offer_category",  # ссылка на промежуточную таблицу
+        back_populates="categories",
+        lazy='joined',
+    )
+
+class Offer_Category(db.Model):
+    __tablename__ = "offer_category"
+    id: Mapped[int] = mapped_column(primary_key = True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("category.id", ondelete="CASCADE"), nullable=False)
+    offer_id: Mapped[int] = mapped_column(ForeignKey("offer.id", ondelete="CASCADE"), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('category_id', 'offer_id', name='unique_offer_category'),
     )
 
 class User(UserMixin, db.Model):                                                   # пользователь
