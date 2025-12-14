@@ -19,6 +19,19 @@
             {% endfor %}
         </p>
         <p>
+            <label>Категории:</label><br>
+            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                {% for subfield in form.categories %}
+                <div>
+                    {{ subfield }} {{ subfield.label }}
+                </div>
+                {% endfor %}
+            </div>
+            {% for error in form.categories.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.conditions.label }}<br>
             {{ form.conditions() }}<br>
             {% for error in form.conditions.errors %}

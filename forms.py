@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 import sqlalchemy
 
@@ -43,7 +43,13 @@ class AddNewOfferForm(FlaskForm):
         'cols': 63,
         'maxlength': 1024,
     })
-#    category = StringField('Введите категорию товара', render_kw={'size': 64, 'maxlength': 64})                                               ###   Пока что временно сделаем категории строкой, потом можно будет выбирать из огромного списка с поиском
+    categories = SelectMultipleField(
+        'Категории',
+        choices=[],                                                                  # Будет заполняться в routes
+        option_widget=widgets.CheckboxInput(),
+        widget=widgets.ListWidget(prefix_label=False),
+        coerce=int
+    )
     conditions = TextAreaField('', render_kw={
         'class': 'offer-creation-wide-textarea',
         'placeholder': 'Введите условия обмена здесь...',

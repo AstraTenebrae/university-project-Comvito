@@ -8,52 +8,126 @@
 
 
 {% block main_content %}
-        <!-- Поиск -->
-        <section class="mb-2">
-            <input type="text" class="form-control mb-1" placeholder="Что ищете, товарищ?">
-            <div class="d-flex gap-1" style="overflow-x: auto;">
-                <button class="btn-secondary active">Всё</button>
-                <button class="btn-secondary">Одежда</button>
-                <button class="btn-secondary">Книги</button>
-                <button class="btn-secondary">Электроника</button>
+    <!-- Поиск и фильтры -->
+    <section class="mb-2">
+        <form method="GET" action="{{ url_for('homepage') }}" class="d-flex flex-column gap-1">
+            <!-- Поле поиска -->
+            <input type="text" name="search" class="form-control mb-1" placeholder="Что ищете, товарищ?" value="{{ search_query }}">
+            <!-- Кнопки категорий -->
+            <div class="d-flex gap-1 mb-1" style="overflow-x: auto;">
+                <button type="submit" name="category" value="" class="btn-secondary {% if not selected_category %}active{% endif %}">
+                    Все
+                </button>
+                {% for category in all_categories %}
+                <button type="submit" name="category" value="{{ category.id }}" class="btn-secondary {% if selected_category == category.id %}active{% endif %}">
+                    {{ category.category_name }}
+                </button>
+                {% else %}
+                    <div> Ошибка: отсутствуют категории</div>
+                {% endfor %}
             </div>
-        </section>
+            <!-- Управление пагинацией -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span>Показывать по:</span>
+                <input type="number" name="per_page" value="{{ per_page }}" min="1" max="100" style="width: 80px;" class="form-control form-control-sm">
+                <span>предложений</span>
+                <button type="submit" class="btn-secondary btn-sm">Применить</button>
+            </div>
+            
+            <!-- Скрытые поля для сохранения текущих параметров -->
+            {% if page > 1 %}
+            <input type="hidden" name="page" value="{{ page }}">
+            {% endif %}
+        </form>
+    </section>
+    <!-- Карточки товаров -->
+    <section>
+        {% for offer in offers %}
+        <div class="card mb-1">
+            <div class="card-body">
+                <div class="card-title">{{ offer.offer_name }}</div>
+                <div class="card-text mb-1">{{ offer.offer_description }}</div>
+                
+                {% if offer.categories %}
+                <div class="mb-1">
+                    {% for category in offer.categories %}
+                    <span class="badge bg-secondary me-1">{{ category.category_name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between text-muted">
+                    <span>{{ offer.user.username if offer.user else 'Ошибка: нееизвестный пользователь' }}</span>
+                    <span class="text-primary">~ 0.5 км</span> <!-- Пока оставляем заглушку для расстояния -->
+                </div>
+                
+                {% if offer.conditions %}
+                <div class="mt-1 mb-1">
+                    <small><strong>Условия обмена:</strong> {{ offer.conditions }}</small>
+                </div>
+                {% endif %}
+                
+                <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="card mb-1">
+            <div class="card-body">
+                <div class="card-title">Предложения отсутствуют</div>
+                <div class="card-text mb-1">Будьте первым, кто предложит обмен!</div>
+                <div class="d-flex justify-content-between text-muted">
+                    <span>Администрация</span>
+                    <span class="text-primary">~ 0 км</span>
+                </div>
+                <a href="{{url_for('offer_creation')}}">
+                    <button class="btn-primary mt-1" style="width: 100%;">Создать первое предложение</button>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
 
-        <!-- Карточки товаров -->
-        <section>
-            {% for offer in offers %}
-            <div class="card mb-1">
-                <div class="card-body">
-                    <div class="card-title">{{ offer.offer_name }}</div>
-                    <div class="card-text mb-1">{{ offer.offer_description }}</div>
-                    <div class="d-flex justify-content-between text-muted">
-                        <span>{{ offer.user.username if offer.user else 'Неизвестный пользователь' }}</span>
-                        <span class="text-primary">~ 0.5 км</span> <!-- Пока оставляем заглушку для расстояния -->
-                    </div>
-                    {% if offer.conditions %}
-                    <div class="mt-1 mb-1">
-                        <small><strong>Условия обмена:</strong> {{ offer.conditions }}</small>
-                    </div>
-                    {% endif %}
-                    <button class="btn-primary mt-1" style="width: 100%;">Предложить обмен</button>
-                </div>
-            </div>
-            {% else %}
-            <div class="card mb-1">
-                <div class="card-body">
-                    <div class="card-title">Предложения отсутствуют</div>
-                    <div class="card-text mb-1">Будьте первым, кто предложит обмен!</div>
-                    <div class="d-flex justify-content-between text-muted">
-                        <span>Администрация</span>
-                        <span class="text-primary">~ 0 км</span>
-                    </div>
-                    <a href="{{url_for('offer_creation')}}">
-                        <button class="btn-primary mt-1" style="width: 100%;">Создать первое предложение</button>
+
+    <!-- Пагинация -->
+    {% if total_pages > 1 %}
+    <nav aria-label="Навигация по страницам" class="mt-3">
+        <ul class="pagination justify-content-center">
+            {% if page > 1 %}
+            <li class="page-item">
+                <a class="page-link" 
+                   href="{{ url_for('homepage', page=page-1, per_page=per_page, search=search_query, category=selected_category) }}">
+                    Предыдущая
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ p }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" 
+                       href="{{ url_for('homepage', page=p, per_page=per_page, search=search_query, category=selected_category) }}">
+                        {{ p }}
                     </a>
-                </div>
-            </div>
+                </li>
+                {% endif %}
             {% endfor %}
-        </section>
+            
+            {% if page < total_pages %}
+            <li class="page-item">
+                <a class="page-link" 
+                   href="{{ url_for('homepage', page=page+1, per_page=per_page, search=search_query, category=selected_category) }}">
+                    Следующая
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
 
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -76,6 +150,13 @@
                 });
                 this.classList.add('active');
             });
+        });
+        
+        // Автоматическая отправка формы при изменении количества элементов на странице
+        document.querySelector('input[name="per_page"]').addEventListener('change', function() {
+            // Сбрасываем страницу на первую при изменении количества элементов
+            document.querySelector('input[name="page"]')?.remove();
+            this.form.submit();
         });
     </script>
 {% endblock %}
