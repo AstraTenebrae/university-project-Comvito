@@ -67,6 +67,7 @@ class Offer(db.Model):                                                  # пре
 #    category: Mapped[str] = mapped_column(nullable=True)
     conditions: Mapped[str] = mapped_column(nullable=True)
     is_hidden: Mapped[bool] = mapped_column(nullable=False, default=False)
+    offer_status: Mapped[str] = mapped_column(nullable=False, default="АКТИВНО", server_default="АКТИВНО")                                           # ДОЛЖНО ПРИНИМАТЬ ТОЛЬКО ЗНАЧНИЯ "АКТИВНО", "УСПЕХ" И "ОТМЕНА"
     
     user: Mapped["User"] = relationship(
         "User",

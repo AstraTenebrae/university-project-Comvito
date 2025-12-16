@@ -1,11 +1,22 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, update
+from datetime import datetime
 import math
 
 from forms import LoginForm, RegistrationForm, AddNewOfferForm
-from db_tables import User, Offer, Category
+from db_tables import User, Offer, Category, User_Feedback
 from api_settings import app, db
+
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        # Обновляем время последнего входа
+        last_seen = update(User).where(User.id == current_user.id).values(last_seen_online=datetime.now())
+        db.session.execute(last_seen)
+        db.session.commit()
+
 
 
 @app.route('/')
@@ -147,5 +158,98 @@ def offer_creation():
                 offer.categories.append(category)
         db.session.commit()
         flash('Предложение успешно создано')
-        return redirect(url_for('homepage'))                                        ### Потом можно заменить на личный кабинет или страницу предложения
+        return redirect(url_for('show_cabinet'))
     return render_template('new_offer.html', title='Новое предложение', form=form)
+
+
+@app.route('/cabinet')
+def show_cabinet():
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    search_query = request.args.get('search', '')
+    category_id = request.args.get('category', None, type=int)
+    user_id = request.args.get('user', current_user.id, type=int)
+    
+    profile_user = db.session.get(User, user_id)
+    if not profile_user:
+        flash('Пользователь не найден')
+        return redirect(url_for('homepage'))
+    
+    successful_offers_count = db.session.scalar(
+        select(db.func.count(Offer.id)).where(
+            Offer.user_id_offeror == user_id,
+            Offer.offer_status == "УСПЕХ"
+        )
+    ) or 0
+    
+    active_offers_count = db.session.scalar(
+        select(db.func.count(Offer.id)).where(
+            Offer.user_id_offeror == user_id,
+            Offer.offer_status == "АКТИВНО"
+        )
+    ) or 0
+    
+    feedbacks_count = db.session.scalar(
+        select(db.func.count(User_Feedback.id)).where(
+            User_Feedback.user_id_recipient == user_id
+        )
+    ) or 0
+    
+    completed_offers_query = select(Offer).where(
+        Offer.user_id_offeror == user_id,
+        Offer.offer_status.in_(["УСПЕХ", "ОТМЕНА"])
+    ).order_by(Offer.id.desc()).limit(5)
+    completed_offers_result = db.session.execute(completed_offers_query).unique()
+    completed_offers = completed_offers_result.scalars().all()
+    
+    offers_query = select(Offer).where(Offer.is_hidden == False)
+    offers_query = offers_query.where(Offer.user_id_offeror == user_id)
+    if search_query:
+        offers_query = offers_query.where(
+            or_(
+                Offer.offer_name.ilike(f'%{search_query}%'),
+                Offer.offer_description.ilike(f'%{search_query}%')
+            )
+        )
+    if category_id:
+        offers_query = offers_query.join(Offer.categories).where(Category.id == category_id)
+    offers_query = offers_query.order_by(Offer.id.desc()).offset((page - 1) * per_page).limit(per_page)
+    offers_result = db.session.execute(offers_query).unique()
+    offers = offers_result.scalars().all()
+
+    count_query = select(db.func.count()).select_from(offers_query.subquery())
+    total_count = db.session.scalar(count_query)
+    if not total_count:
+        total_count = 0
+    if per_page > 0:
+        total_pages = math.ceil(total_count / per_page)
+    else:
+        total_pages = 1
+    if page > total_pages and total_pages > 0:
+        page = total_pages
+    elif page < 1:
+        page = 1
+    
+    all_categories = db.session.scalars(
+        select(Category).order_by(Category.category_name)
+    ).unique().all()
+
+    return render_template(
+        'cabinet.html',
+        offers=offers, 
+        page=page, 
+        per_page=per_page,
+        total_pages=total_pages,
+        search_query=search_query,
+        selected_category=category_id,
+        all_categories=all_categories,
+        profile_user=profile_user,
+        successful_offers_count=successful_offers_count,
+        active_offers_count=active_offers_count,
+        feedbacks_count=feedbacks_count,
+        completed_offers=completed_offers,
+        is_own_profile=(current_user.id == user_id),
+    )

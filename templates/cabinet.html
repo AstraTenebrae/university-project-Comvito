@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block header %}{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cabinet.css') }}">
+{% endblock %}
+
+{% block main_content %}
+<main class="profile-container">
+    <section class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">
+            </div>
+            <div class="profile-info">
+                <div class="profile-name">{{ profile_user.username }}</div>
+                <div class="status">
+                    С {{ profile_user.registration_date.strftime('%d.%m.%Y %H:%M') }}
+                    {% if profile_user.last_seen_online %}
+                        (был(а) в сети {{ profile_user.last_seen_online.strftime('%d.%m.%Y %H:%M') }})
+                    {% else %}
+                        (никогда не был(а) в сети)
+                    {% endif %}
+                </div>
+                <div class="rating">
+                    ★★★ </div>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stitem">
+                <div class="stval">{{ successful_offers_count }}</div>
+                <div class="stl">Успешных обмена</div>
+            </div>
+            <div class="stitem">
+                <div class="stval">{{ active_offers_count }}</div>
+                <div class="stl">Активных предложений</div>
+            </div>
+            <div class="stitem">
+                <div class="stval">{{ feedbacks_count }}</div>
+                <div class="stl">Отзывов</div>
+            </div>
+        </div>
+        <div class="actions">
+            {% if is_own_profile %}
+                <button class="actbtn">Внести правки</button>
+            {% else %}
+                <button class="actbtn">Написать</button>
+            {% endif %}
+            <button class="actbtn secondary">Телеграммы</button>
+            <button class="actbtn secondary">История обмена</button>
+        </div>
+    </section>
+
+    <div class="quote">
+        Товарищ, твой вклад в развитие народного хозяйства через бартер неоценим!
+    </div>
+
+    <!-- Активные предложения -->
+    <section class="user-items">
+        <div class="title">
+            {% if is_own_profile %}Мои предложения{% else %}Предложения пользователя{% endif %}
+            {% if is_own_profile %}
+                <a href="{{url_for('offer_creation')}}" class="nav-btn">Добавить</a>
+            {% endif %}
+        </div>
+        
+        <div class="items-grid">
+            {% for offer in offers %}
+            <article class="user-item-card">
+                <div class="item-image"></div>
+                <div class="item-info">
+                    <div class="item-title">{{ offer.offer_name }}</div>
+                    <div class="desc">{{ offer.offer_description }}</div>
+                    <div class="item-meta">
+                        <span>Статус: {{ offer.offer_status }}</span>
+                        <span class="item-status">{{ "Скрыто" if offer.is_hidden else "Видно" }}</span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Завершенные обмены -->
+    <section class="user-items">
+        <div class="title">
+            Недавние обмены
+        </div>
+        
+        <div class="items-grid">
+            {% for offer in completed_offers %}
+            <article class="user-item-card">
+                <div class="item-image"></div>
+                <div class="item-info">
+                    <div class="item-title">{{ offer.offer_name }}</div>
+                    <div class="desc">{{ offer.offer_description }}</div>
+                    <div class="item-meta">
+                        <span>Статус: {{ offer.offer_status }}</span>
+                        <span class="item-status">{{ "Скрыто" if offer.is_hidden else "Видно" }}</span>                        
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+            {% if completed_offers|length == 0 %}
+            <article class="user-item-card">
+                <div class="item-info">
+                    <div class="desc">Нет завершенных обменов</div>
+                </div>
+            </article>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

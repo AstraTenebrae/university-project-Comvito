@@ -151,3 +151,177 @@ body {
 .mt-1 { margin-top: 10px; }
 .p-1 { padding: 10px; }
 .p-2 { padding: 15px 20px; }
+
+/* Стили для формы создания предложения */
+.offer-creation-form {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fffdfb;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    border: 2px solid #d4c6c6;
+}
+
+.offer-creation-form .form-group {
+    margin-bottom: 20px;
+}
+
+.offer-creation-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #5a3e3e;
+    font-size: 0.95em;
+}
+
+.offer-creation-wide-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px;
+    border: 1px solid #d4c6c6;
+    border-radius: 3px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    background-color: #fffdfb;
+    color: #5a3e3e;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+.offer-creation-wide-textarea:focus {
+    border-color: #8c2a2a;
+    outline: none;
+}
+
+.offer-creation-form .submit-btn {
+    background-color: #8c2a2a;
+    color: #fff8f8;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 3px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid #7a2424;
+}
+
+.offer-creation-form .submit-btn:hover {
+    background-color: #943030;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.offer-creation-form .submit-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Стили для выбора категорий */
+.categories-container {
+    background-color: #fffdfb;
+    border: 2px solid #d4c6c6;
+    border-radius: 3px;
+    padding: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+}
+
+.categories-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #f8f4f0;
+    border: 1px solid #e8ddd8;
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+
+.category-item:hover {
+    background-color: #f0e8e8;
+    border-color: #d4c6c6;
+}
+
+.category-item input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #8c2a2a;
+}
+
+.category-item label {
+    margin: 0;
+    font-size: 0.9em;
+    color: #5a3e3e;
+    cursor: pointer;
+    flex-grow: 1;
+    font-weight: normal;
+}
+
+.category-item input[type="checkbox"]:checked + label {
+    color: #8c2a2a;
+    font-weight: bold;
+}
+
+.categories-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.selected-count {
+    background-color: #8c2a2a;
+    color: #fff8f8;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+    border: 1px solid #6d1f1f;
+}
+
+/* Стили. */
+.categories-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.categories-container::-webkit-scrollbar-track {
+    background: #f0e8e8;
+}
+
+.categories-container::-webkit-scrollbar-thumb {
+    background: #c4b0b0;
+    border-radius: 2px;
+}
+
+.categories-container::-webkit-scrollbar-thumb:hover {
+    background: #b09e9e;
+}
+
+/* Адаптивность */
+.offer-creation-form {
+    max-width: 768px;
+    padding: 15px;
+    margin: 10px;
+}
+
+.categories-list {
+    grid-template-columns: 1fr;
+}
